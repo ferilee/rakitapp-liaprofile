@@ -5,12 +5,13 @@ import type { Context, Next } from "hono";
 import { cors } from "hono/cors";
 import { serveStatic } from "hono/bun";
 import { desc, eq } from "drizzle-orm";
-import { db, ensureSchema, seedDatabase } from "./db";
+import { db, ensureSchema, seedDatabase, seedResourceSubmenus } from "./db";
 import { physicsFacts, profiles, resources, socialLinks, works } from "./db/schema";
 import { readAsset, uploadAsset } from "./storage";
 
 ensureSchema();
 seedDatabase();
+seedResourceSubmenus();
 
 const app = new Hono();
 app.use("/api/*", cors());
@@ -98,6 +99,7 @@ app.post("/api/admin/resources", async (c) => {
       description: String(body.description ?? ""),
       icon: String(body.icon ?? "book-open"),
       url: String(body.url ?? "#"),
+      parentId: body.parentId ? Number(body.parentId) : null,
       sortOrder: Number(body.sortOrder ?? 99),
       isFeatured: Boolean(body.isFeatured ?? true),
     })
@@ -122,6 +124,7 @@ app.patch("/api/admin/resources/:id", async (c) => {
       description: String(body.description ?? ""),
       icon: String(body.icon ?? "book-open"),
       url: String(body.url ?? "#"),
+      parentId: body.parentId ? Number(body.parentId) : null,
     })
     .where(eq(resources.id, Number(c.req.param("id"))))
     .returning()

@@ -17,6 +17,7 @@ export type Resource = {
   description: string;
   icon: string;
   url: string;
+  parentId: number | null;
   sortOrder: number;
   isFeatured: boolean;
 };

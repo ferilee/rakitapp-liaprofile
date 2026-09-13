@@ -20,6 +20,7 @@ export const resources = sqliteTable("resources", {
   description: text("description").notNull(),
   icon: text("icon").notNull(),
   url: text("url").notNull(),
+  parentId: integer("parent_id"),
   sortOrder: integer("sort_order").notNull().default(0),
   isFeatured: integer("is_featured", { mode: "boolean" }).notNull().default(false),
 });

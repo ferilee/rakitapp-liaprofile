@@ -43,6 +43,7 @@ Gunakan `ADMIN_TOKEN` yang kuat ketika aplikasi akan diakses di luar komputer lo
 - `GET /api/health` memeriksa API.
 - `GET /api/admin/stats` mengambil data dashboard dan memerlukan header `x-admin-token`.
 - `POST /api/admin/resources` dan `DELETE /api/admin/resources/:id` mengelola sumber belajar.
+- Sumber belajar dapat memiliki banyak sub-menu melalui field `parentId`; `PATCH /api/admin/resources/:id` memperbarui induk atau isi sub-menu.
 - `POST /api/admin/works` dan `DELETE /api/admin/works/:id` mengelola karya.
 - `POST /api/uploads` menerima gambar multipart dengan field `file` dan menyimpannya ke RustFS.
 
