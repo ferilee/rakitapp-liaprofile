@@ -1,13 +1,10 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/ferilee/rakitapp-liaprofile:${IMAGE_TAG:-latest}
+    pull_policy: always
     container_name: rakitapp-liaprofile
     ports:
       - "${APP_PORT:-13021}:3000"
-    env_file:
-      - .env
     environment:
       PORT: 3000
       DATABASE_URL: /app/data/lia-physics.db

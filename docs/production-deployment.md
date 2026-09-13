@@ -3,7 +3,7 @@
 Panduan ini mengikuti layout VM yang sudah digunakan:
 
 ```text
-/srv/apps/rakitapp-liaprofile/              source code dan Compose
+/srv/apps/rakitapp-liaprofile/              Compose production dan environment
 /srv/data/rakitapp-liaprofile/sqlite/       SQLite production
 /srv/data/rakitapp-liaprofile/uploads/      direktori operasional
 /srv/backups/rakitapp-liaprofile/sqlite/    backup database
@@ -32,45 +32,43 @@ sudo chown -R ferilee:ferilee \
 
 Folder `uploads` disiapkan untuk kebutuhan operasional. Runtime aplikasi menggunakan bucket RustFS sebagai storage utama.
 
-## 2. Ambil source code
+## 2. Siapkan stack di Arcane
 
-File `docker-compose.production.yml` sudah tersedia di repository dan tidak menjalankan RustFS kedua.
+Workflow GitHub Actions akan menjalankan test, typecheck, build, lalu mempublikasikan image ke GHCR dengan tag commit pendek dan `latest`. Arcane mengambil file Compose dari repository atau konfigurasi stack yang sudah Anda kelola.
 
-Instalasi baru:
+Gunakan pengaturan berikut di Arcane:
 
-```bash
-git clone git@github.com:ferilee/rakitapp-liaprofile.git /srv/apps/rakitapp-liaprofile
-cd /srv/apps/rakitapp-liaprofile
+```text
+Repository:  git@github.com:ferilee/rakitapp-liaprofile.git
+Branch:      main
+Compose:     docker-compose.production.yml
+Image:       ghcr.io/ferilee/rakitapp-liaprofile:<tag>
 ```
 
-Update folder yang sudah ada:
+Jika Arcane menyimpan Compose secara langsung, tempel isi `docker-compose.production.yml` dan pastikan image GHCR dapat dipull oleh Docker host.
 
-```bash
-cd /srv/apps/rakitapp-liaprofile
-git fetch origin
-git checkout main
-git pull --ff-only origin main
-```
+Tidak diperlukan `git clone` manual di VM. Arcane mengambil source Compose dari Git atau menggunakan Compose yang disimpan di dalam stack.
 
-## 3. Buat environment production
+## 3. Atur environment production di Arcane
 
-Buat `/srv/apps/rakitapp-liaprofile/.env`:
+Masukkan variable berikut pada bagian Environment/Variables stack Arcane:
 
-```bash
-cd /srv/apps/rakitapp-liaprofile
-umask 077
-cat > .env <<'EOF'
+```text
 APP_PORT=13021
+IMAGE_TAG=latest
 APP_DATA_DIR=/srv/data/rakitapp-liaprofile
 RUSTFS_ENDPOINT=http://host.docker.internal:9000
 RUSTFS_ACCESS_KEY=liaadmin
 RUSTFS_SECRET_KEY=ganti-dengan-secret-rustfs-yang-sama
 RUSTFS_BUCKET=lia-assets
 ADMIN_TOKEN=ganti-dengan-token-admin-panjang-dan-acak
-EOF
 ```
 
-Buat token rahasia dengan `openssl rand -hex 32`. Credential RustFS harus sama dengan service RustFS di `/srv/platform/rustfs`. Jangan commit `.env` ke Git.
+Buat token rahasia dengan `openssl rand -hex 32`. Credential RustFS harus sama dengan service RustFS di `/srv/platform/rustfs`. Tandai `RUSTFS_SECRET_KEY` dan `ADMIN_TOKEN` sebagai secret bila Arcane mendukungnya.
+
+Jika Compose dijalankan manual dari shell, variable yang sama dapat disimpan dalam file `.env` di samping file Compose. File tersebut tidak boleh di-commit.
+
+Untuk deploy versi tertentu, ubah `IMAGE_TAG` ke tag commit, misalnya `f9785dc`. Jangan bergantung pada `latest` untuk rollback.
 
 ## 4. Pastikan RustFS sehat
 
@@ -82,12 +80,21 @@ curl -f http://127.0.0.1:9000/health
 
 Jika RustFS tidak mempublish port 9000 ke host, ganti `RUSTFS_ENDPOINT` dengan alamat service pada Docker network bersama, misalnya `http://rustfs:9000`, lalu tambahkan network eksternal yang sesuai ke Compose production.
 
-## 5. Jalankan aplikasi
+## 5. Deploy dari Arcane
+
+Di Arcane, jalankan urutan berikut setiap ada image baru:
+
+```text
+Pull image GHCR
+Redeploy atau recreate stack
+Periksa status health container
+```
+
+Jika perlu menjalankan dari shell VM untuk troubleshooting:
 
 ```bash
-cd /srv/apps/rakitapp-liaprofile
-docker compose -f docker-compose.production.yml config
-docker compose -f docker-compose.production.yml up -d --build
+docker compose -f docker-compose.production.yml pull
+docker compose -f docker-compose.production.yml up -d --force-recreate
 docker compose -f docker-compose.production.yml ps
 docker compose -f docker-compose.production.yml logs --tail=100 app
 curl -f http://127.0.0.1:13021/api/health
@@ -129,27 +136,21 @@ Aset upload berada di bucket RustFS, sehingga backup aset perlu dilakukan dari s
 
 ## 8. Update dan rollback
 
-Update normal:
+Update normal dilakukan dengan push ke branch `main`:
 
 ```bash
-cd /srv/apps/rakitapp-liaprofile
-git fetch origin
-git checkout main
-git pull --ff-only origin main
-docker compose -f docker-compose.production.yml up -d --build
-curl -f http://127.0.0.1:13021/api/health
+git add .
+git commit -m "Update application"
+git push origin main
 ```
 
-Rollback:
+Setelah GitHub Actions selesai, Arcane pull dan redeploy. Untuk rollback, ubah `IMAGE_TAG` di Arcane ke tag commit sebelumnya, lalu pull dan redeploy ulang.
 
 ```bash
-cd /srv/apps/rakitapp-liaprofile
-git log --oneline -5
-git checkout <commit-yang-ingin-dipakai>
-docker compose -f docker-compose.production.yml up -d --build
+docker pull ghcr.io/ferilee/rakitapp-liaprofile:<commit-sebelumnya>
 ```
 
-Setelah rollback terverifikasi, kembalikan branch ke `main` sebelum deployment berikutnya.
+Pastikan Arcane sudah login ke `ghcr.io` jika package GHCR bersifat private. Volume SQLite tetap dipertahankan saat container diganti.
 
 ## 9. Pemeriksaan rutin
 
