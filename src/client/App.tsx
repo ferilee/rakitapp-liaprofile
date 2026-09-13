@@ -52,7 +52,7 @@ function PublicSite() {
   const [error, setError] = useState("");
   const [dark, setDark] = useState(() => localStorage.getItem("lia-theme") === "dark");
   const [answerVisible, setAnswerVisible] = useState(false);
-  const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
+  const [openResourceId, setOpenResourceId] = useState<number | null>(null);
 
   useEffect(() => {
     document.body.classList.toggle("theme-light", !dark);
@@ -66,7 +66,6 @@ function PublicSite() {
 
   const { profile, resources, works, socials, fact } = site;
   const featured = resources.filter((resource) => resource.isFeatured && resource.parentId === null);
-  const submenuItems = selectedResource ? resources.filter((resource) => resource.parentId === selectedResource.id).sort((a, b) => a.sortOrder - b.sortOrder) : [];
   const jumpTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
 
   return <div className="bio-shell">
@@ -75,8 +74,7 @@ function PublicSite() {
     <header className="bio-topbar"><a href="/" className="bio-brand"><span className="bio-brand-mark"><Sparkles size={16} /></span><span>Lia Physics Hub</span></a><div className="bio-top-actions"><button className="bio-icon-button" onClick={() => setDark((value) => !value)} aria-label="Ganti tema">{dark ? <Sun size={16} /> : <Moon size={16} />}</button><a href="/admin" className="bio-admin-link">Admin</a></div></header>
     <main className="bio-main">
       <section className="bio-profile"><div className="bio-avatar-wrap"><span className="bio-spark bio-spark-one">✦</span><span className="bio-spark bio-spark-two">✧</span><img className="bio-avatar" src={profile.avatarUrl} alt={profile.name} /></div><p className="bio-role">{profile.role} · {profile.school}</p><h1>{profile.name}</h1><p className="bio-tagline">{profile.tagline}</p><div className="bio-actions"><a className="bio-primary-button" href={`https://wa.me/${profile.whatsapp}`}><Share2 size={16} /> Hubungi saya</a><a className="bio-secondary-button" href={`mailto:${profile.email}`}><Mail size={16} /> Email</a></div><div className="bio-socials">{socials.map((social) => { const Icon = socialIcons[social.platform] ?? ExternalLink; return <a key={social.id} href={social.url} target="_blank" rel="noreferrer" aria-label={social.label}><Icon size={17} /></a>; })}</div></section>
-      <section id="ruang-belajar" className="bio-section"><div className="bio-section-heading"><span className="bio-section-number">01</span><div><p>Ruang belajar</p><span>Pilih cara belajar yang paling cocok untukmu.</span></div></div><div className="bio-link-list">{featured.map((resource) => <BioLinkCard key={resource.id} resource={resource} children={resources.filter((child) => child.parentId === resource.id).sort((a, b) => a.sortOrder - b.sortOrder)} onOpen={() => setSelectedResource(resource)} />)}</div></section>
-      {selectedResource && <ResourceSubmenu resource={selectedResource} items={submenuItems} onClose={() => setSelectedResource(null)} />}
+      <section id="ruang-belajar" className="bio-section"><div className="bio-section-heading"><span className="bio-section-number">01</span><div><p>Ruang belajar</p><span>Pilih cara belajar yang paling cocok untukmu.</span></div></div><div className="bio-link-list">{featured.map((resource) => <BioLinkCard key={resource.id} resource={resource} children={resources.filter((child) => child.parentId === resource.id).sort((a, b) => a.sortOrder - b.sortOrder)} open={openResourceId === resource.id} onOpen={() => setOpenResourceId((current) => current === resource.id ? null : resource.id)} />)}</div></section>
       {fact && <section className="bio-fact"><div className="bio-fact-icon">⚡</div><div className="bio-fact-copy"><p>Fisika hari ini</p><h2>{fact.question}</h2>{answerVisible && <span>{fact.answer}</span>}<button onClick={() => setAnswerVisible((value) => !value)}>{answerVisible ? "Tutup jawaban" : "Cari tahu →"}</button></div></section>}
       <section id="karya" className="bio-section"><div className="bio-section-heading"><span className="bio-section-number">02</span><div><p>Karya & inovasi</p><span>Catatan kecil dari ruang kelas.</span></div></div><div className="bio-work-list">{works.map((work) => <BioWorkItem key={work.id} work={work} />)}</div></section>
       <section className="bio-about"><div className="bio-about-quote">“</div><p>{profile.bio}</p><button onClick={() => jumpTo("karya")}>Lihat perjalanan belajar <ArrowUpRight size={15} /></button></section>
@@ -85,14 +83,15 @@ function PublicSite() {
   </div>;
 }
 
-function BioLinkCard({ resource, children, onOpen }: { resource: Resource; children: Resource[]; onOpen: () => void }) {
+function BioLinkCard({ resource, children, open, onOpen }: { resource: Resource; children: Resource[]; open: boolean; onOpen: () => void }) {
   const Icon = resourceIcons[resource.icon] ?? BookOpen;
-  if (children.length > 0) return <button type="button" onClick={onOpen} className="bio-link-card bio-link-button"><span className="bio-link-icon"><Icon size={19} /></span><span className="bio-link-copy"><strong>{resource.title}</strong><small>{resource.description} · {children.length} pilihan</small></span><ChevronRight size={18} className="bio-link-arrow" /></button>;
+  if (children.length > 0) return <div className={`bio-resource-group${open ? " is-open" : ""}`}><button type="button" onClick={onOpen} className="bio-link-card bio-link-button" aria-expanded={open}><span className="bio-link-icon"><Icon size={19} /></span><span className="bio-link-copy"><strong>{resource.title}</strong><small>{resource.description} · {children.length} pilihan</small></span><ChevronRight size={18} className="bio-link-arrow" /></button>{open && <div className="bio-cascade-list">{children.map((item) => <BioSubmenuItem key={item.id} item={item} />)}</div>}</div>;
   return <a href={resource.url} target="_blank" rel="noreferrer" className="bio-link-card"><span className="bio-link-icon"><Icon size={19} /></span><span className="bio-link-copy"><strong>{resource.title}</strong><small>{resource.description}</small></span><ChevronRight size={18} className="bio-link-arrow" /></a>;
 }
 
-function ResourceSubmenu({ resource, items, onClose }: { resource: Resource; items: Resource[]; onClose: () => void }) {
-  return <div className="bio-submenu-backdrop" role="presentation" onClick={onClose}><section className="bio-submenu" role="dialog" aria-modal="true" aria-labelledby="submenu-title" onClick={(event) => event.stopPropagation()}><div className="bio-submenu-header"><div><p>Ruang belajar</p><h2 id="submenu-title">{resource.title}</h2></div><button type="button" onClick={onClose} aria-label="Tutup sub-menu">×</button></div><p className="bio-submenu-description">Pilih materi yang ingin kamu buka.</p><div className="bio-submenu-list">{items.map((item) => { const Icon = resourceIcons[item.icon] ?? BookOpen; return <a key={item.id} href={item.url} target="_blank" rel="noreferrer" className="bio-submenu-item"><span className="bio-submenu-icon"><Icon size={17} /></span><span><strong>{item.title}</strong><small>{item.description}</small></span><ExternalLink size={14} /></a>; })}</div></section></div>;
+function BioSubmenuItem({ item }: { item: Resource }) {
+  const Icon = resourceIcons[item.icon] ?? BookOpen;
+  return <a href={item.url} target="_blank" rel="noreferrer" className="bio-submenu-item"><span className="bio-submenu-icon"><Icon size={17} /></span><span><strong>{item.title}</strong><small>{item.description}</small></span><ExternalLink size={14} /></a>;
 }
 
 function BioWorkItem({ work }: { work: Work }) {

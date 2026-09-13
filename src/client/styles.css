@@ -124,14 +124,10 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .bio-decoration-left { left: -8px; top: 100px; transform: rotate(-20deg); }
 .bio-decoration-right { right: 3px; top: 225px; color: #e9ad7f; font-size: 50px; transform: rotate(12deg); }
 .bio-error { display: grid; min-height: 100vh; place-items: center; gap: 12px; background: #fff8f5; color: #a65f70; text-align: center; }
-.bio-submenu-backdrop { position: fixed; z-index: 50; inset: 0; display: grid; place-items: end center; padding: 16px; background: rgb(34 41 49 / .28); backdrop-filter: blur(5px); }
-.bio-submenu { width: min(100%, 620px); max-height: min(78vh, 620px); overflow: auto; padding: 22px; border: 1px solid rgb(208 143 153 / .28); border-radius: 28px; background: #fffaf8; box-shadow: 0 24px 70px rgb(66 47 51 / .25); }
-.bio-submenu-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
-.bio-submenu-header p { margin: 0 0 5px; color: #c27c87; font-family: var(--font-mono); font-size: 9px; letter-spacing: .15em; text-transform: uppercase; }
-.bio-submenu-header h2 { margin: 0; color: #304955; font-family: Georgia, "Times New Roman", serif; font-size: 23px; }
-.bio-submenu-header button { display: grid; height: 30px; width: 30px; place-items: center; border: 0; border-radius: 50%; background: #f8dfe1; color: #a8566a; cursor: pointer; font-size: 22px; line-height: 1; }
-.bio-submenu-description { margin: 12px 0 15px; color: #8a9ea4; font-size: 12px; }
-.bio-submenu-list { display: grid; gap: 8px; }
+.bio-resource-group { display: grid; gap: 8px; }
+.bio-resource-group .bio-link-arrow { transition: transform .2s ease; }
+.bio-resource-group.is-open .bio-link-arrow { transform: rotate(90deg); }
+.bio-cascade-list { display: grid; gap: 7px; margin: -1px 0 3px 24px; padding: 8px 0 3px 15px; border-left: 1px solid rgb(208 143 153 / .3); }
 .bio-submenu-item { display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid rgb(208 143 153 / .2); border-radius: 17px; color: #304955; text-decoration: none; }
 .bio-submenu-item:hover { background: #fff; border-color: rgb(208 143 153 / .46); }
 .bio-submenu-icon { display: grid; height: 38px; width: 38px; flex: 0 0 38px; place-items: center; border-radius: 12px; background: #f7cbd1; color: #b4576d; }
@@ -158,12 +154,11 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .theme-dark .bio-about { background: rgb(238 135 152 / .1); }
 .theme-dark .bio-about p { color: #a5bbc0; }
 .theme-dark .bio-work-item { border-color: rgb(146 221 221 / .16); }
-.theme-dark .bio-submenu { border-color: rgb(146 221 221 / .16); background: #172630; box-shadow: 0 24px 70px rgb(0 0 0 / .4); }
-.theme-dark .bio-submenu-header h2, .theme-dark .bio-submenu-item strong { color: #d8eeef; }
-.theme-dark .bio-submenu-description, .theme-dark .bio-submenu-item small { color: #8ba5ad; }
+.theme-dark .bio-submenu-item strong { color: #d8eeef; }
+.theme-dark .bio-submenu-item small { color: #8ba5ad; }
 .theme-dark .bio-submenu-item { border-color: rgb(146 221 221 / .15); color: #d8eeef; }
 .theme-dark .bio-submenu-item:hover { background: rgb(255 255 255 / .06); }
-.theme-dark .bio-submenu-header button { background: rgb(238 135 152 / .18); color: #f2a8b5; }
+.theme-dark .bio-cascade-list { border-color: rgb(146 221 221 / .3); }
 
 @media (min-width: 700px) {
   .bio-shell { padding-inline: 20px; }
