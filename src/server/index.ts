@@ -118,7 +118,9 @@ app.get("/api/assets/*", async (c) => {
     const asset = await readAsset(key);
     const body = await asset.Body?.transformToByteArray();
     if (!body) return c.json({ error: "Aset tidak ditemukan" }, 404);
-    return c.body(body, 200, { "Content-Type": asset.ContentType ?? "application/octet-stream", "Cache-Control": "public, max-age=31536000, immutable" });
+    const bytes = new Uint8Array(body.byteLength);
+    bytes.set(body);
+    return c.body(bytes, 200, { "Content-Type": asset.ContentType ?? "application/octet-stream", "Cache-Control": "public, max-age=31536000, immutable" });
   } catch {
     return c.json({ error: "Aset tidak ditemukan" }, 404);
   }
