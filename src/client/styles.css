@@ -198,7 +198,11 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .admin-shell { padding-bottom: 106px; }
   .admin-header { align-items: flex-start; flex-direction: column; }
   .admin-header .inline-flex { align-self: stretch; justify-content: center; }
+  .admin-profile-settings { display: none; }
   .admin-forms, .admin-lists { display: block !important; }
+  .admin-shell[data-admin-tab="profile"] .admin-profile-settings { display: block; }
+  .admin-shell[data-admin-tab="profile"] .admin-forms,
+  .admin-shell[data-admin-tab="profile"] .admin-lists { display: none !important; }
   .admin-shell[data-admin-tab="resource-add"] .admin-work-panel,
   .admin-shell[data-admin-tab="resource-add"] .admin-lists,
   .admin-shell[data-admin-tab="work-add"] .admin-resource-panel,
@@ -207,8 +211,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .admin-shell[data-admin-tab="resource-list"] .admin-work-list-panel,
   .admin-shell[data-admin-tab="work-list"] .admin-forms,
   .admin-shell[data-admin-tab="work-list"] .admin-resource-list-panel { display: none !important; }
-  .admin-mobile-nav { position: fixed; z-index: 40; right: 12px; bottom: 12px; left: 12px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; padding: 6px; border: 1px solid rgb(208 143 153 / .25); border-radius: 22px; background: rgb(255 250 248 / .93); box-shadow: 0 15px 35px rgb(188 121 133 / .2); backdrop-filter: blur(18px); }
-  .admin-mobile-nav button { display: flex; min-width: 0; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 51px; border: 0; border-radius: 16px; background: transparent; color: #8b9da3; cursor: pointer; font-size: 9px; line-height: 1.1; }
+  .admin-mobile-nav { position: fixed; z-index: 40; right: 12px; bottom: 12px; left: 12px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; padding: 6px; border: 1px solid rgb(208 143 153 / .25); border-radius: 22px; background: rgb(255 250 248 / .93); box-shadow: 0 15px 35px rgb(188 121 133 / .2); backdrop-filter: blur(18px); }
+  .admin-mobile-nav button { display: flex; min-width: 0; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 51px; border: 0; border-radius: 16px; background: transparent; color: #8b9da3; cursor: pointer; font-size: 8px; line-height: 1.1; }
   .admin-mobile-nav button[data-active="true"] { background: #f8cbd1; color: #a8566a; font-weight: 800; }
   .admin-mobile-nav button:hover { color: #a8566a; }
   .admin-profile-intro { grid-template-columns: 1fr; justify-items: center; text-align: center; }
