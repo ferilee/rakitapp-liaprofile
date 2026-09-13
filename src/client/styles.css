@@ -1,0 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; min-width: 320px; background: #07131d; font-family: var(--font-sans); }
+button, a { -webkit-tap-highlight-color: transparent; }
+.font-display { font-family: var(--font-display); }
+.eyebrow { color: rgb(103 232 249 / .7); font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; }
+.section-title { margin-top: 1rem; max-width: 24rem; color: white; font-family: var(--font-display); font-size: clamp(2rem, 4vw, 3.25rem); font-weight: 600; letter-spacing: -.055em; line-height: 1.08; }
+.ambient { pointer-events: none; position: absolute; border-radius: 9999px; filter: blur(90px); opacity: .22; }
+.ambient-one { left: -10rem; top: 9rem; height: 24rem; width: 24rem; background: #0e7490; }
+.ambient-two { right: -11rem; top: 34rem; height: 26rem; width: 26rem; background: #0369a1; }
+.theme-light .site-shell { background: #eef5f7; color: #14232d; }
+.theme-light .site-shell h1, .theme-light .site-shell h2, .theme-light .site-shell h3, .theme-light .site-shell p, .theme-light .site-shell span { }
+.theme-light .ambient { opacity: .1; }
+::selection { background: rgb(103 232 249 / .3); color: white; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}

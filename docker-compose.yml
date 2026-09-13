@@ -1,0 +1,45 @@
+services:
+  app:
+    build: .
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      PORT: 3000
+      DATABASE_URL: /app/data/lia-physics.db
+      RUSTFS_ENDPOINT: http://rustfs:9000
+      RUSTFS_ACCESS_KEY: liaadmin
+      RUSTFS_SECRET_KEY: liaphysicssecret
+      RUSTFS_BUCKET: lia-assets
+      STORAGE_PUBLIC_URL: http://localhost:${RUSTFS_PORT:-9000}/lia-assets
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-ganti-token-admin-ini}
+    volumes:
+      - sqlite-data:/app/data
+    depends_on:
+      rustfs:
+        condition: service_healthy
+    restart: unless-stopped
+
+  rustfs:
+    image: rustfs/rustfs:latest
+    command: ["/data"]
+    environment:
+      RUSTFS_ACCESS_KEY: liaadmin
+      RUSTFS_SECRET_KEY: liaphysicssecret
+      RUSTFS_ADDRESS: ":9000"
+      RUSTFS_CONSOLE_ADDRESS: ":9001"
+      RUSTFS_CONSOLE_ENABLE: "true"
+    ports:
+      - "${RUSTFS_PORT:-9000}:9000"
+      - "${RUSTFS_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - rustfs-data:/data
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  sqlite-data:
+  rustfs-data:
