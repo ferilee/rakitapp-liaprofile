@@ -74,6 +74,24 @@ app.delete("/api/admin/resources/:id", (c) => {
   return c.body(null, 204);
 });
 
+app.patch("/api/admin/resources/:id", async (c) => {
+  const body = await c.req.json<Record<string, unknown>>();
+  const result = db
+    .update(resources)
+    .set({
+      category: String(body.category ?? "Belajar"),
+      title: String(body.title ?? "Sumber Belajar"),
+      description: String(body.description ?? ""),
+      icon: String(body.icon ?? "book-open"),
+      url: String(body.url ?? "#"),
+    })
+    .where(eq(resources.id, Number(c.req.param("id"))))
+    .returning()
+    .get();
+  if (!result) return c.json({ error: "Sumber belajar tidak ditemukan" }, 404);
+  return c.json(result);
+});
+
 app.post("/api/admin/works", async (c) => {
   const body = await c.req.json<Record<string, unknown>>();
   const result = db
@@ -93,6 +111,23 @@ app.post("/api/admin/works", async (c) => {
 app.delete("/api/admin/works/:id", (c) => {
   db.delete(works).where(eq(works.id, Number(c.req.param("id")))).run();
   return c.body(null, 204);
+});
+
+app.patch("/api/admin/works/:id", async (c) => {
+  const body = await c.req.json<Record<string, unknown>>();
+  const result = db
+    .update(works)
+    .set({
+      title: String(body.title ?? "Karya Baru"),
+      description: String(body.description ?? ""),
+      imageUrl: String(body.imageUrl ?? ""),
+      url: String(body.url ?? "#"),
+    })
+    .where(eq(works.id, Number(c.req.param("id"))))
+    .returning()
+    .get();
+  if (!result) return c.json({ error: "Karya tidak ditemukan" }, 404);
+  return c.json(result);
 });
 
 app.post("/api/uploads", async (c) => {
