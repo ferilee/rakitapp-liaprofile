@@ -5,16 +5,18 @@ import { drizzle } from "drizzle-orm/bun-sqlite";
 import * as schema from "./schema";
 
 const databaseUrl = process.env.DATABASE_URL ?? "./data/lia-physics.db";
-mkdirSync(dirname(databaseUrl), { recursive: true });
+export function createDatabase(url = databaseUrl) {
+  mkdirSync(dirname(url), { recursive: true });
+  const sqlite = new Database(url);
+  sqlite.run("PRAGMA journal_mode = WAL;");
+  sqlite.run("PRAGMA foreign_keys = ON;");
+  return { sqlite, db: drizzle(sqlite, { schema }) };
+}
 
-export const sqlite = new Database(databaseUrl);
-sqlite.run("PRAGMA journal_mode = WAL;");
-sqlite.run("PRAGMA foreign_keys = ON;");
+export const { sqlite, db } = createDatabase();
 
-export const db = drizzle(sqlite, { schema });
-
-export function ensureSchema() {
-  sqlite.run(`
+export function ensureSchema(database = sqlite) {
+  database.run(`
     CREATE TABLE IF NOT EXISTS profiles (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
@@ -63,18 +65,18 @@ export function ensureSchema() {
     );
   `);
   try {
-    sqlite.run("ALTER TABLE resources ADD COLUMN parent_id INTEGER");
+    database.run("ALTER TABLE resources ADD COLUMN parent_id INTEGER");
   } catch {
     // Existing databases already have the compatibility column.
   }
 }
 
-export function seedDatabase() {
-  const profile = sqlite.query("SELECT id FROM profiles LIMIT 1").get() as { id: number } | null;
+export function seedDatabase(database = sqlite) {
+  const profile = database.query("SELECT id FROM profiles LIMIT 1").get() as { id: number } | null;
   if (profile) return;
 
   const now = Date.now();
-  sqlite.run(
+  database.run(
     `INSERT INTO profiles (name, role, school, tagline, bio, avatar_url, whatsapp, email, updated_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
@@ -90,7 +92,7 @@ export function seedDatabase() {
     ],
   );
 
-  const insertResource = sqlite.prepare(
+  const insertResource = database.prepare(
     `INSERT INTO resources (category, title, description, icon, url, sort_order, is_featured) VALUES (?, ?, ?, ?, ?, ?, ?)`,
   );
   [
@@ -102,7 +104,7 @@ export function seedDatabase() {
     ["Latihan", "Kuis Interaktif", "Belajar sambil bermain dan berdiskusi", "sparkles", "https://quizizz.com", 6, 1],
   ].forEach((row) => insertResource.run(...row));
 
-  const insertWork = sqlite.prepare(
+  const insertWork = database.prepare(
     `INSERT INTO works (title, description, image_url, url, sort_order) VALUES (?, ?, ?, ?, ?)`,
   );
   [
@@ -111,7 +113,7 @@ export function seedDatabase() {
     ["Proyek Energi Terbarukan", "Proyek kolaboratif siswa tentang solusi energi untuk masa depan.", "https://images.unsplash.com/photo-1466611653911-95081537e5b7?auto=format&fit=crop&w=900&q=85", "https://drive.google.com", 3],
   ].forEach((row) => insertWork.run(...row));
 
-  const insertSocial = sqlite.prepare(
+  const insertSocial = database.prepare(
     `INSERT INTO social_links (platform, label, url, sort_order) VALUES (?, ?, ?, ?)`,
   );
   [
@@ -121,7 +123,7 @@ export function seedDatabase() {
     ["drive", "Google Drive", "https://drive.google.com", 4],
   ].forEach((row) => insertSocial.run(...row));
 
-  const insertFact = sqlite.prepare(
+  const insertFact = database.prepare(
     `INSERT INTO physics_facts (question, answer, source_url, sort_order, active) VALUES (?, ?, ?, ?, ?)`,
   );
   [
@@ -131,13 +133,13 @@ export function seedDatabase() {
   ].forEach((row) => insertFact.run(...row));
 }
 
-export function seedResourceSubmenus() {
-  const existing = sqlite.query("SELECT COUNT(*) AS count FROM resources WHERE parent_id IS NOT NULL").get() as { count: number };
+export function seedResourceSubmenus(database = sqlite) {
+  const existing = database.query("SELECT COUNT(*) AS count FROM resources WHERE parent_id IS NOT NULL").get() as { count: number };
   if (existing.count > 0) return;
 
-  const parents = sqlite.query("SELECT id, title FROM resources WHERE parent_id IS NULL").all() as { id: number; title: string }[];
+  const parents = database.query("SELECT id, title FROM resources WHERE parent_id IS NULL").all() as { id: number; title: string }[];
   const parentIds = new Map(parents.map((parent) => [parent.title, parent.id]));
-  const insert = sqlite.prepare(
+  const insert = database.prepare(
     `INSERT INTO resources (category, title, description, icon, url, parent_id, sort_order, is_featured) VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
   );
   const submenuData: Record<string, [string, string, string, string][]> = {
