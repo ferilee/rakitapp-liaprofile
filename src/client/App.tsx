@@ -49,6 +49,50 @@ function App() {
 function PublicSite() {
   const [site, setSite] = useState<SiteData | null>(null);
   const [error, setError] = useState("");
+  const [dark, setDark] = useState(() => localStorage.getItem("lia-theme") === "dark");
+  const [answerVisible, setAnswerVisible] = useState(false);
+
+  useEffect(() => {
+    document.body.classList.toggle("theme-light", !dark);
+    document.body.classList.toggle("theme-dark", dark);
+    localStorage.setItem("lia-theme", dark ? "dark" : "light");
+  }, [dark]);
+
+  useEffect(() => { getSite().then(setSite).catch((reason) => setError(reason.message)); }, []);
+  if (error) return <div className="bio-error"><CircleHelp size={36} /><p>{error}</p></div>;
+  if (!site) return <LoadingState />;
+
+  const { profile, resources, works, socials, fact } = site;
+  const featured = resources.filter((resource) => resource.isFeatured);
+  const jumpTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+
+  return <div className="bio-shell">
+    <div className="bio-decoration bio-decoration-left">✿</div>
+    <div className="bio-decoration bio-decoration-right">✧</div>
+    <header className="bio-topbar"><a href="/" className="bio-brand"><span className="bio-brand-mark"><Sparkles size={16} /></span><span>Lia Physics Hub</span></a><div className="bio-top-actions"><button className="bio-icon-button" onClick={() => setDark((value) => !value)} aria-label="Ganti tema">{dark ? <Sun size={16} /> : <Moon size={16} />}</button><a href="/admin" className="bio-admin-link">Admin</a></div></header>
+    <main className="bio-main">
+      <section className="bio-profile"><div className="bio-avatar-wrap"><span className="bio-spark bio-spark-one">✦</span><span className="bio-spark bio-spark-two">✧</span><img className="bio-avatar" src={profile.avatarUrl} alt={profile.name} /></div><p className="bio-role">{profile.role} · {profile.school}</p><h1>{profile.name}</h1><p className="bio-tagline">{profile.tagline}</p><div className="bio-actions"><a className="bio-primary-button" href={`https://wa.me/${profile.whatsapp}`}><Share2 size={16} /> Hubungi saya</a><a className="bio-secondary-button" href={`mailto:${profile.email}`}><Mail size={16} /> Email</a></div><div className="bio-socials">{socials.map((social) => { const Icon = socialIcons[social.platform] ?? ExternalLink; return <a key={social.id} href={social.url} target="_blank" rel="noreferrer" aria-label={social.label}><Icon size={17} /></a>; })}</div></section>
+      <section id="ruang-belajar" className="bio-section"><div className="bio-section-heading"><span className="bio-section-number">01</span><div><p>Ruang belajar</p><span>Pilih cara belajar yang paling cocok untukmu.</span></div></div><div className="bio-link-list">{featured.map((resource) => <BioLinkCard key={resource.id} resource={resource} />)}</div></section>
+      {fact && <section className="bio-fact"><div className="bio-fact-icon">⚡</div><div className="bio-fact-copy"><p>Fisika hari ini</p><h2>{fact.question}</h2>{answerVisible && <span>{fact.answer}</span>}<button onClick={() => setAnswerVisible((value) => !value)}>{answerVisible ? "Tutup jawaban" : "Cari tahu →"}</button></div></section>}
+      <section id="karya" className="bio-section"><div className="bio-section-heading"><span className="bio-section-number">02</span><div><p>Karya & inovasi</p><span>Catatan kecil dari ruang kelas.</span></div></div><div className="bio-work-list">{works.map((work) => <BioWorkItem key={work.id} work={work} />)}</div></section>
+      <section className="bio-about"><div className="bio-about-quote">“</div><p>{profile.bio}</p><button onClick={() => jumpTo("karya")}>Lihat perjalanan belajar <ArrowUpRight size={15} /></button></section>
+    </main>
+    <footer className="bio-footer"><span>Belajar · Bertanya · Menemukan</span><span>© {new Date().getFullYear()} {profile.name}</span></footer>
+  </div>;
+}
+
+function BioLinkCard({ resource }: { resource: Resource }) {
+  const Icon = resourceIcons[resource.icon] ?? BookOpen;
+  return <a href={resource.url} target="_blank" rel="noreferrer" className="bio-link-card"><span className="bio-link-icon"><Icon size={19} /></span><span className="bio-link-copy"><strong>{resource.title}</strong><small>{resource.description}</small></span><ChevronRight size={18} className="bio-link-arrow" /></a>;
+}
+
+function BioWorkItem({ work }: { work: Work }) {
+  return <a href={work.url} target="_blank" rel="noreferrer" className="bio-work-item"><img src={work.imageUrl} alt="" /><span><strong>{work.title}</strong><small>{work.description}</small></span><ExternalLink size={15} /></a>;
+}
+
+function LegacyPublicSite() {
+  const [site, setSite] = useState<SiteData | null>(null);
+  const [error, setError] = useState("");
   const [dark, setDark] = useState(() => localStorage.getItem("lia-theme") !== "light");
   const [fact, setFact] = useState<Fact | null>(null);
   const [answerVisible, setAnswerVisible] = useState(false);
