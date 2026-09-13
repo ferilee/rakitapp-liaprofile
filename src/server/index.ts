@@ -47,7 +47,45 @@ app.get("/api/admin/stats", (c) => {
     resources: db.select().from(resources).orderBy(desc(resources.id)).all(),
     works: db.select().from(works).orderBy(desc(works.id)).all(),
     facts: db.select().from(physicsFacts).orderBy(desc(physicsFacts.id)).all(),
+    socials: db.select().from(socialLinks).orderBy(socialLinks.sortOrder).all(),
   });
+});
+
+app.patch("/api/admin/profile", async (c) => {
+  const body = await c.req.json<Record<string, unknown>>();
+  const result = db
+    .update(profiles)
+    .set({
+      name: String(body.name ?? "Lia Prastiwi Susanti"),
+      role: String(body.role ?? "Guru Fisika"),
+      school: String(body.school ?? "SMKN Senduro"),
+      tagline: String(body.tagline ?? ""),
+      bio: String(body.bio ?? ""),
+      avatarUrl: String(body.avatarUrl ?? ""),
+      whatsapp: String(body.whatsapp ?? ""),
+      email: String(body.email ?? ""),
+      updatedAt: new Date(),
+    })
+    .where(eq(profiles.id, 1))
+    .returning()
+    .get();
+  if (!result) return c.json({ error: "Profil tidak ditemukan" }, 404);
+  return c.json(result);
+});
+
+app.patch("/api/admin/socials/:id", async (c) => {
+  const body = await c.req.json<Record<string, unknown>>();
+  const result = db
+    .update(socialLinks)
+    .set({
+      label: String(body.label ?? "Media sosial"),
+      url: String(body.url ?? "#"),
+    })
+    .where(eq(socialLinks.id, Number(c.req.param("id"))))
+    .returning()
+    .get();
+  if (!result) return c.json({ error: "Link media sosial tidak ditemukan" }, 404);
+  return c.json(result);
 });
 
 app.post("/api/admin/resources", async (c) => {

@@ -38,3 +38,12 @@ export async function adminRequest<T>(path: string, init?: RequestInit): Promise
   if (!response.ok) throw new Error((await response.json().catch(() => null))?.error ?? "Permintaan gagal");
   return response.status === 204 ? (undefined as T) : response.json();
 }
+
+export async function uploadAdminAsset(file: File): Promise<{ url: string }> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const token = typeof localStorage === "undefined" ? "" : localStorage.getItem("lia-admin-token") ?? "";
+  const response = await fetch("/api/uploads", { method: "POST", headers: { "x-admin-token": token }, body: formData });
+  if (!response.ok) throw new Error((await response.json().catch(() => null))?.error ?? "Upload foto gagal");
+  return response.json();
+}
